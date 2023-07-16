@@ -15,7 +15,7 @@ for Vabs = 0:2:6
 
 
 
-    ds = 1e-9:5e-10:9e-9;
+    ds = 1e-9:0.1e-9:6e-9;
     pks = zeros(length(ds),3);
     abs_refract = 0;
     rel_refract = 0;
@@ -40,23 +40,20 @@ for Vabs = 0:2:6
 
     end
 
-
-    subplot(4,1,Vabs/2 + 1);
-    legend( ['absolute refractory period = ' num2str(abs_refract/p.dt) 'S' 'relative refractory period = ' num2str(rel_refract/p.dt) 'S'],'Location', 'northwest' , 'FontSize' , 20 )
     abs_refract
     rel_refract
-    for i = 1:2
-        plot(ds/p.dt*1e-3,smooth(pks(:,i).')*1e3,'LineWidth' , 3);
-        hold on;
-    end
-    title(['Vabs = ' num2str(Vabs)])
+    %plot(ds/p.dt*1e-3,smooth(pks(:,1).')*1e3,'b','LineWidth' , 3);
+    %hold on;
+    plot(ds/p.dt*1e-3,smooth(pks(:,2).')*1e3,'LineWidth' , 3 , 'DisplayName',['Vabs = ' num2str(Vabs)]);
+    hold on;
+    legend();
     ylabel( 'Peak Power (mW)' , 'FontSize' , 20)
     xlabel( 'Distance (ns)' , 'FontSize' , 20 )
 
     
     
 end
-exportgraphics(gcf,['writting/chapter1/refractory/ref.png'])
+%exportgraphics(gcf,['writting/chapter1/refractory/ref.png'])
 
 %% Plot Data
 t = p.dt : p.dt : p.tot_time * p.dt;

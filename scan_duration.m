@@ -1,16 +1,4 @@
 
-
-%params
-Vabs = 0;
-L = 200e-6;
-Rga = 0.1;
-inj = 0.6;
-p = constants(Vabs,L,Rga);
-I_bias_map = [16.17,19.85,24.35,30,36.80,45].*1e-3;  %I_bias for operating as neuron for each Vabss from 0-5
-I_bias = I_bias_map(Vabs+1);
-
-
-
 Pin  = 1e-3 ;%10e-3; %min Pin with I_bias 24.45e-3 and pulse_duration 0.9e-9
 Pulse_duration = 0.9e-9;
 %for Pulse_duration = ps 
@@ -27,6 +15,7 @@ Pulse_duration = 0.9e-9;
 %    legend( 'Input' , 'Neuron' , 'FontSize' , 20 )
 %    title( [ 'Pin=' num2str( Pin * 1e3 ) 'Pulse Duration=' num2str( Pulse_duration * 1e9 ) ] )
 %end
+figure('Renderer', 'painters', 'Position', [5 5 900 900]);    
 for Vabs = 0:5
 
     L = 200e-6;
@@ -37,19 +26,18 @@ for Vabs = 0:5
     I_bias = I_bias_map(Vabs+1);
 
 
-    ps = 0e-9:5e-10:20e-9;
+    ps = 0e-9:1e-10:10e-9;
     pks = zeros(length(ps),10);
     pks_w = zeros(length(ps),10);
     pks_count = zeros(length(ps),1);
 
 
-    figure('Renderer', 'painters', 'Position', [5 5 900 900]);    
     counter = 1;
     for Pulse_duration = ps
         subplot(3,1,1);
         Data = DATA_SEQUENCE( Pin , Pulse_duration , p );
         Pout = Laser(p,Data,I_bias,Vabs);
-        [peaks,~,w,~] = findpeaks(Pout,'MinPeakProminence',0.020);
+        [peaks,~,w,~] = findpeaks(Pout(10000:end),'MinPeakProminence',0.020,'MinPeakHeight',0.001);
         pks_count(counter) = length(peaks); %this is to keep track of the count
         pk_count = length(peaks); % this is to only hold the last value for the plotting
         
@@ -59,35 +47,31 @@ for Vabs = 0:5
 
     end
 
-    disp(pks_count)
 
     subplot(3,1,1);
-    plot(ps*1e9,pks_count,'LineWidth',3);
+    plot(ps*1e9,pks_count,'LineWidth',2,'DisplayName',['Vabs = ' num2str(Vabs)]);
     hold on;
-    for i = 1:pk_count
-        subplot(3,1,2);
-        plot(ps*1e9,smooth(pks(:,i).')*1e3,'LineWidth' , 3);
-        hold on;
-        subplot(3,1,3);
-        plot(ps*1e9,pks_w(:,i),'LineWidth',3);
-        hold on;
-    end
-
-    disp(pks)
+    legend();
+    subplot(3,1,2);
+    plot(ps*1e9,pks(:,1).*1e3,'LineWidth' , 3);
+    hold on;
+    subplot(3,1,3);
+    plot(ps*1e9,pks_w(:,1),'LineWidth',3);
+    hold on;
 
 
     subplot(3,1,1);
     ylabel( 'Total No of spikes' , 'FontSize' , 20)
     title(['Vabs = ' num2str(Vabs) ' Volt'])
     subplot(3,1,2);
-    ylabel( 'total power (ns)' , 'FontSize' , 20)
+    ylabel( 'Peak Power (mW)' , 'FontSize' , 20)
     title(['Vabs = ' num2str(Vabs) ' Volt'])
     subplot(3,1,3);
     ylabel( 'Pulse width(ps)' , 'FontSize' , 20)
     title(['Vabs = ' num2str(Vabs) ' Volt'])
     xlabel( 'Pulse duration (ns)' , 'FontSize' , 20 )
 
-    exportgraphics(gcf,['writting/chapter1/pulse_duration/Vabs' num2str(Vabs) '.png'])
+    %exportgraphics(gcf,['writting/chapter1/pulse_duration/Vabs' num2str(Vabs) '.png'])
 
 end
 %end
