@@ -26,7 +26,7 @@ for Vabs = 0:2:6
         Data = DATA_SEQUENCE_2PULSE( Pin , Pulse_duration , p, distance );
         Pout = Laser(p,Data,I_bias,Vabs);
 
-        [peaks,~,~,prom] = findpeaks(Pout(10000:end),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
+        [peaks,~,~,prom] = findpeaks(Pout(p.stab + ( cc_cycle - 1 ) * round( ISI / p.dt ) + 1 : p.stab + ( cc_cycle - 1 ) * round( ISI / p.dt ) + round( DC * ISI / p.dt )),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
         pks(counter,1:length(peaks)) = peaks;
         counter = counter + 1;
         if(abs_refract == 0 && length(peaks) == 2)
