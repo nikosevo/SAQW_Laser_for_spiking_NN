@@ -3,7 +3,7 @@
 %scanning parameters
 Pin = 3e-3;
 ISI = 3e-9;            %input(blue line): pulse period...how much time it needs to complete one oscillation
-nr_cycles = 2;          %number of cycles, how many square pulses we putting in
+nr_cycles = 3;          %number of cycles, how many square pulses we putting in
 dc = 0.5;               %duty cycle: how much time inside the period the pulse stays on...50% means have period 'high' half 'low'
 delay = 15e-9;          %transmision distance between the two pulses
 
@@ -12,7 +12,7 @@ delay = 15e-9;          %transmision distance between the two pulses
 %THATS THE MAIN CODE --------------------------------------------------------------------------------------
 colors = [[0 0.4470 0.7410]; [0.8500 0.3250 0.0980];[0.4940 0.1840 0.5560]; [0.4660 0.6740 0.1880] ;[0.6350 0.0780 0.1840];	[0.4940 0.1840 0.5560]];
 
-for Vabs = 1:1:1
+for Vabs = 5:1:5
     I_bias_map1 = [16.19,19.87,24.39,29.94,36.75,45.10,55.37].*1e-3;
     I_bias_map2 = I_bias_map1 + .25e-3;
     
@@ -25,7 +25,7 @@ for Vabs = 1:1:1
     p = constants( Vabs , L , Rga );
     p.tot_cycles = 200;    
     
-    isi = 1e-9:0.5e-9:2e-9;
+    isi = 2e-9:0.2e-9:4e-9;
     init_peaks = zeros(3,length(isi));
     pks1 = zeros(3,length(isi));
     pks2 = zeros(3,length(isi));
@@ -53,9 +53,9 @@ for Vabs = 1:1:1
         [peaks1,loc] = findpeaks(Pout1(round(length(Pout1)/2):end),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
         if(~isempty(peaks1))
             %scan for peaks around that area only
-            start = 400000 + loc(length(loc)) - round(nr_cycles * ISI/p.dt);
-            finish = 400000 + loc(length(loc)) + round(nr_cycles * ISI/p.dt);
-            [peaks1] = findpeaks(Pout1(start:finish),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
+            start = round(length(Pout1)/2) + loc(length(loc)) - round(nr_cycles * ISI/p.dt);
+            finish = round(length(Pout1)/2) + loc(length(loc)) + round(nr_cycles * ISI/p.dt);
+            [peaks1] = findpeaks(Pout1(start:end),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
             
             pks1(1,counter) = peaks1(1);
 
@@ -65,12 +65,12 @@ for Vabs = 1:1:1
                     pks1(3,counter) = peaks(3);
                 end
             end
-            [peaks2,loc] = findpeaks(Pout2(400000:end),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
+            [peaks2,loc] = findpeaks(Pout2(round(length(Pout2)/2):end),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
             if(~isempty(peaks2))
-                start = 400000 + loc(length(loc)) - round(nr_cycles * ISI/p.dt);
-                finish = 400000 + loc(length(loc)) + round(nr_cycles * ISI/p.dt);
+                start = round(length(Pout2)/2) + loc(length(loc)) - round(nr_cycles * ISI/p.dt);
+                finish = round(length(Pout2)/2) + loc(length(loc)) + round(nr_cycles * ISI/p.dt);
 
-                [peaks2] = findpeaks(Pout2(start:finish),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
+                [peaks2] = findpeaks(Pout2(start:end),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
                 pks2(1,counter) = peaks2(1);
                 if(length(peaks2)== 2)
                     pks2(2,counter) = peaks2(2);

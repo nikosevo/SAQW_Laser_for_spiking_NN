@@ -2,7 +2,7 @@
 
 Vabs = 5;   
 I_bias_map1 = [16.19,19.87,24.39,29.94,36.75,45.10,55.37].*1e-3;
-I_bias_map2 = I_bias_map1 + .25e-3;
+I_bias_map2 = I_bias_map1 + .3e-3;
 
 I_bias1 = I_bias_map1(Vabs + 1);       
 I_bias2 = I_bias_map2(Vabs + 1);                                
@@ -13,8 +13,8 @@ p = constants( Vabs , L , Rga );
 
 %scanning parameters
 Pin = 3e-3;
-ISI = 1.5e-9;            %input(blue line): pulse period...how much time it needs to complete one oscillation
-nr_cycles = 2;          %number of cycles, how many square pulses we putting in
+ISI = 4e-9;            %input(blue line): pulse period...how much time it needs to complete one oscillation
+nr_cycles = 3;          %number of cycles, how many square pulses we putting in
 dc = 0.5;               %duty cycle: how much time inside the period the pulse stays on...50% means have period 'high' half 'low'
 delay = 15e-9;          %transmision distance between the two pulses
 p.tot_cycles = 200;      %how many simulations u need to see to believe me that the memory is working
