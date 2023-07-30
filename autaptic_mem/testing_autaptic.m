@@ -1,8 +1,8 @@
           
 
-Vabs = 5;   
+Vabs = 4;   
 I_bias_map1 = [16.19,19.87,24.39,29.94,36.75,45.10,55.37].*1e-3;
-I_bias_map2 = I_bias_map1 + .3e-3;
+I_bias_map2 = I_bias_map1 + .25e-3;
 
 I_bias1 = I_bias_map1(Vabs + 1);       
 I_bias2 = I_bias_map2(Vabs + 1);                                
@@ -12,11 +12,11 @@ inj = 0.6;
 p = constants( Vabs , L , Rga );
 
 %scanning parameters
-Pin = 3e-3;
-ISI = 4e-9;            %input(blue line): pulse period...how much time it needs to complete one oscillation
+Pin = 1.9e-3;
+ISI = 3e-9;            %input(blue line): pulse period...how much time it needs to complete one oscillation
 nr_cycles = 3;          %number of cycles, how many square pulses we putting in
 dc = 0.5;               %duty cycle: how much time inside the period the pulse stays on...50% means have period 'high' half 'low'
-delay = 15e-9;          %transmision distance between the two pulses
+delay = 150e-9;          %transmision distance between the two pulses
 p.tot_cycles = 200;      %how many simulations u need to see to believe me that the memory is working
 
 
@@ -84,7 +84,7 @@ function [Pout1,Pout2] = lasers(p,Data,I_bias1,I_bias2,delay,Nr_cycles,DC,ISI)
 
     %Lasers
     p.Tdelay = round( delay / p.dt ); 
-    for cc_t = p.stab : p.stab + ( Nr_cycles + p.tot_cycles ) *  round( ISI / p.dt ) - 1
+    for cc_t = p.stab  : p.stab  + ( Nr_cycles + p.tot_cycles ) *  round( ISI / p.dt ) - 1
         % Input power
         Pin1_to_2 = p.eta_c * p.Gamma_g * p.h * p.c * Nph1( cc_t - p.Tdelay ) / ( p.tph * p.lambda );
         Pin1_to_2 = p.eta_input * p.tph * p.lambda * Pin1_to_2 / ( p.h * p.c ); 
@@ -191,6 +191,6 @@ function p = constants( Vabs , L , Rga )
 
     %% time constants 
     p.dt = 1e-12;
-    p.stab = round( 20e-9 / p.dt );
+    p.stab = round( 200e-9 / p.dt );
 
 end

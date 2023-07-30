@@ -5,7 +5,8 @@ Pin = 5e-3;
 ISI = 3e-9;            %input(blue line): pulse period...how much time it needs to complete one oscillation
 nr_cycles = 1;          %number of cycles, how many square pulses we putting in
 dc = 0.5;               %duty cycle: how much time inside the period the pulse stays on...50% means have period 'high' half 'low'
-delay = 15e-9;          %transmision distance between the two pulses
+delay = 150e-9;          %transmision distance between the two pulses
+
 
 
 
@@ -23,7 +24,7 @@ for Vabs = 0:1:5
     L = 200e-6;                                 
     Rga = 0.1;                                   
     inj = 0.6;                                  
-    p = constants( Vabs , L , Rga );
+    p = constants(Vabs,L,Rga);
     p.tot_cycles = 200;    
 
     pin = 0e-3:1e-3:2e-3;
@@ -107,7 +108,6 @@ end
 
 
 
-
 function [Pout1,Pout2] = lasers(p,Data,I_bias1,I_bias2,delay,Nr_cycles,DC,ISI)
 
     [ Ng1 , Nabs1 , Nph1 , Pout1 ] = INITIALIZATION( p );
@@ -183,7 +183,6 @@ function [Pout1,Pout2] = lasers(p,Data,I_bias1,I_bias2,delay,Nr_cycles,DC,ISI)
     
     
 end
-
 function Data = DATA_SEQUENCE( Pin , ISI , Nr_cycles , DC , p )
     Data = zeros( 1 , p.stab + round( ISI / p.dt ) * ( Nr_cycles + p.tot_cycles ) );
 
@@ -191,8 +190,6 @@ function Data = DATA_SEQUENCE( Pin , ISI , Nr_cycles , DC , p )
         Data( p.stab + ( cc_cycle - 1 ) * round( ISI / p.dt ) + 1 : p.stab + ( cc_cycle - 1 ) * round( ISI / p.dt ) + round( DC * ISI / p.dt ) ) = Pin * ones( 1 , round( DC * ISI / p.dt ) );
     end
 end
-
-
 function  [ Ng , Nabs , Nph , Pout ] = INITIALIZATION( p )
     Ng = 1e1 * ones( 1 , p.stab );
     Nabs = 1e1 * ones( 1 , p.stab );
@@ -205,7 +202,6 @@ function g = GAIN( n )
     a = 9.571e4;    b= -5.229e6;
     g = a * log( n ) + b;
 end
-
 function p = constants( Vabs , L , Rga )
     %% global constants
     p.h = 6.626070e-34;
@@ -253,6 +249,8 @@ function p = constants( Vabs , L , Rga )
 
     %% time constants 
     p.dt = 1e-12;
-    p.stab = round( 20e-9 / p.dt );
+    p.stab = round( 200e-9 / p.dt );
 
 end
+
+

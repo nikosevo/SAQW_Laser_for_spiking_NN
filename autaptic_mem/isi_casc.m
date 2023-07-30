@@ -5,7 +5,7 @@ Pin = 3e-3;
 ISI = 3e-9;            %input(blue line): pulse period...how much time it needs to complete one oscillation
 nr_cycles = 3;          %number of cycles, how many square pulses we putting in
 dc = 0.5;               %duty cycle: how much time inside the period the pulse stays on...50% means have period 'high' half 'low'
-delay = 15e-9;          %transmision distance between the two pulses
+delay = 150e-9;          %transmision distance between the two pulses
 
 
 
@@ -291,6 +291,6 @@ function p = constants( Vabs , L , Rga )
 
     %% time constants 
     p.dt = 1e-12;
-    p.stab = round( 20e-9 / p.dt );
+    p.stab = round( 200e-9 / p.dt );
 
 end
