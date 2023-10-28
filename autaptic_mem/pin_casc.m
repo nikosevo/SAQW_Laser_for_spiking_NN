@@ -2,7 +2,7 @@
 
 %scanning parameters
 Pin = 5e-3;
-ISI = 3e-9;            %input(blue line): pulse period...how much time it needs to complete one oscillation
+ISI = 1e-9;            %input(blue line): pulse period...how much time it needs to complete one oscillation
 nr_cycles = 1;          %number of cycles, how many square pulses we putting in
 dc = 0.5;               %duty cycle: how much time inside the period the pulse stays on...50% means have period 'high' half 'low'
 delay = 150e-9;          %transmision distance between the two pulses
@@ -14,9 +14,9 @@ delay = 150e-9;          %transmision distance between the two pulses
 figure('Position', [0 0 2000 1000])
 colors = [[0 0.4470 0.7410]; [0.8500 0.3250 0.0980];[0.4940 0.1840 0.5560]; [0.4660 0.6740 0.1880] ;[0.6350 0.0780 0.1840];	[0.4940 0.1840 0.5560]];
 
-for Vabs = 0:1:5
+for Vabs = 1
     I_bias_map1 = [16.19,19.87,24.39,29.94,36.75,45.10,55.37].*1e-3;
-    I_bias_map2 = I_bias_map1 + .25e-3;
+    I_bias_map2 = I_bias_map1 + 1e-3;
     
     I_bias1 = I_bias_map1(Vabs + 1);       
     I_bias2 = I_bias_map2(Vabs + 1);  
@@ -27,10 +27,10 @@ for Vabs = 0:1:5
     p = constants(Vabs,L,Rga);
     p.tot_cycles = 200;    
 
-    pin = 0e-3:1e-3:2e-3;
+    pin = 0.8e-3:0.1e-4:0.9e-3;
     init_peaks = zeros(length(pin),1);
     pks1 = zeros(length(pin),1);
-    pks2 = zeros(length(pin),1);
+    pks2 = zeros(length(pin),1);   
     counter = 1 ;
     for Pin = pin
 
@@ -41,7 +41,7 @@ for Vabs = 0:1:5
 
         init = findpeaks(Pout1(start:finish),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
         if(~isempty(init))
-            init_peaks(counter) = init;
+            init_peaks(counter) = init(1);
         end
 
 
@@ -51,7 +51,9 @@ for Vabs = 0:1:5
             pks1(counter) = peaks1(1);
     
             [peaks2] = findpeaks(Pout2(10000:end),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
-            pks2(counter) = peaks2(1);
+            if(~isempty(peaks2))
+                pks2(counter) = peaks2(1);
+            end
             
         end
 

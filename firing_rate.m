@@ -1,6 +1,6 @@
 figure('Position', [0 0 1200 500]);    
 
-for Vabs = 0 : 5
+for Vabs = 0 : 1
     %params
     L = 200e-6;
     Rga = 0.1;
@@ -45,7 +45,7 @@ ylabel( 'Firing Rate (MHz)' , 'FontSize' , 20)
 xlabel( 'Pin (mW)' , 'FontSize' , 20 )
 legend('Location','northwest','NumColumns',2)
 
-exportgraphics(gcf,['writting/chapter1/firingRate/Pin.png'])
+%exportgraphics(gcf,['writting/chapter1/firingRate/Pin.png'])
 
 
 
