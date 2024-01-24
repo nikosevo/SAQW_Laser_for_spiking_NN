@@ -20,7 +20,7 @@ pks_d = zeros(5,length(pin));
 
 figure('Renderer', 'painters', 'Position', [5 5 1400 900]);    
 
-for Vabs = 0:5
+for Vabs = 1
     L = 200e-6; 
     Rga = 0.1;
     inj = 0.6;
@@ -33,7 +33,7 @@ for Vabs = 0:5
         Data = DATA_SEQUENCE( Pin , Pulse_duration , p );
         
         Pout = Laser(p,Data,I_bias,Vabs);
-        [peak,loc,w,~] = findpeaks(Pout(p.stab:end),'MinPeakProminence',0.01);
+        [peak,loc,w,~] = findpeaks(Pout(p.stab:end),'MinPeakProminence',0.025,'MinPeakHeight',0.02 );
         
         if(isempty(peak))
             pks(Vabs+1,counter) = 0;
@@ -76,7 +76,7 @@ for Vabs = 0:5
     
 end
 
-exportgraphics(gcf,['writting/chapter1/inputpower/Pin.png'])
+%exportgraphics(gcf,['writting/chapter1/inputpower/Pin.png'])
 
 
     

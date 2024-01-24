@@ -1,20 +1,21 @@
  
 %scanning parameters
-Pin = 1e-3;
+Pin = 2e-3;
 ISI = 1e-9;            %input(blue line): pulse period...how much time it needs to complete one oscillation
 nr_cycles = 5;          %number of cycles, how many square pulses we putting in
 dc = 1;               %duty cycle: how much time inside the period the pulse stays on...50% means have period 'high' half 'low'
-delay = 60e-9;          %transmision distance between the two Lasers
+delay = 120e-9;          %transmision distance between the two Lasers
 pulse_delay =10e-9;
 
-
+%%% REDO THAT WITH OPOSITE AXES 
+%% SEE FROM WHICH ISI WE CAN STORE ALL VALUES
 %THATS THE MAIN CODE --------------------------------------------------------------------------------------
 figure('Position', [0 0 2000 1000])
 colors = [[0 0.4470 0.7410]; [0.8500 0.3250 0.0980]; [0.4940 0.1840 0.5560]; [0.4660 0.6740 0.1880];  [0.6350 0.0780 0.1840]; [0.6350 0.0780 0.1840]];
 
 %no point trying 0 and 1 because they dont work at all for memory (spikes not enough power to excite next laser)
-for Vabs = 2:5
-    Vabs
+for Vabs = 2:4
+    
     I_bias_map1 = [16.19,19.87,24.39,29.94,36.75,45.10,55.37].*1e-3;
     I_bias_map2 = I_bias_map1 + .25e-3;
 
@@ -25,16 +26,16 @@ for Vabs = 2:5
     Rga = 0.1;                                   
     inj = 0.6;                                  
     p = constants(Vabs,L,Rga);
-    p.tot_cycles = 700;  
+    p.tot_cycles = 1000;  
 
-    cycles = 1:10;
-    ps = 1e-9:.5e-9:10e-9;
+    cycles = 10;
+    ps = 1e-9:.5e-9:5e-9;
 
+    peaks_num_reg = zeros(length(ps),1)
+    count = 1 ;
     min_pulse_delay = zeros(length(cycles),1);
     for nr_cycles = cycles
-        
         for pulse_delay = ps
-            delay = (ISI+pulse_delay)*nr_cycles;    %rough estimation of the delay so that we can count the spikes
 
             Data = DATA_SEQUENCE(Pin,ISI,nr_cycles,dc,p,pulse_delay);
             [Pout1,Pout2] = lasers(p,Data,I_bias1,I_bias2,delay,nr_cycles,ISI);
@@ -45,50 +46,75 @@ for Vabs = 2:5
 
             [peaks1_init] = findpeaks(Pout1(start:finish),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
             [peaks2,loc2,~,~] = findpeaks(Pout2,'MinPeakProminence',0.025,'MinPeakHeight',0.02);
-            
-            %if the number of spikes is not a integer multiplier of our initial number of spikes there is no way to procceed
-            %here 3 is choosen as integer but any other number will work as long as we are still in p.total_cycles
-            if(length(loc2) < 3*nr_cycles + 1)
-                continue;
-            end
 
+
+            %if the initial spike are not as many as the input we used then the laser cant even spike the initial peaks
+
+
+            %if(not(length(peaks1_init) == nr_cycles))
+            %    continue;
+            %end
+        
+            
+            %if the number of spikes is not a integer multiplier of our initial number of spikes there is reason to procceed
+            %here 3 is choosen as integer but any other number will work as long as we are still in p.total_cycles
+    %        if(length(loc2) < 2*nr_cycles + 1)
+    %            continue;
+    %        end
+            
+            %In this case we have done the necessary checking so we know that the laser kinna works
             %between the last spike of Slave laser and the first of the next batch we should have all the spikes from ML
-            start = loc2(3*nr_cycles);
-            finish = loc2(3*nr_cycles + 1);
+            %start = loc2(2*nr_cycles);
+            %finish = loc2(2*nr_cycles + 1);
+            
+            %%% In this case we dont know if the laser is going to work or not thus we cant use nr_cycles to determined distance
+            %%% thus we work with delay
+            start = (p.stab) + 2*(delay/p.dt)
+            finish = (p.stab) + 3*(delay/p.dt)
             [peaks1_mid] = findpeaks(Pout1(start:finish),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
 
+            peaks_num_reg(count) = length(peaks1_mid)
+            count = count + 1;
+            
+            
+
+  
+
+
             %if the initial spikes are the same after some iterrations (3 choosen here) then the memory works fine and dont need more distance between pulses
-            if(length(peaks1_init) == length(peaks1_mid))
-                min_pulse_delay(nr_cycles) = pulse_delay;
-                break;
-            end
+            %if(length(peaks1_init) == length(peaks1_mid))
+            %   min_pulse_delay(nr_cycles) = pulse_delay;
+            %    break;
+            %end
         end
     end
+    plot(ps*1e9,peaks_num_reg,'LineWidth' , 3 , 'Color',colors(Vabs,:));
     hold on;
-    plot(cycles,min_pulse_delay*1e9,'LineWidth' , 3 , 'Color',colors(Vabs+1,:));
+    %hold on;
+    %plot(cycles,min_pulse_delay*1e9,'LineWidth' , 3 , 'Color',colors(Vabs-1,:));
 
-    path = ['writting/ps_dist/pulse_distance.fig'];
-    savefig(path)
     
 end
 
-xlabel('spike count','FontSize' , 20);
-ylabel('minimum distance (ps)','FontSize' , 20);
+ylabel('spike count','FontSize' , 20);
+xlabel('Pulse distance (ns)','FontSize' , 20);
 title('minimum pulse distance for pulse regeneration');
-legend('Vabs = 0 ', 'Vabs = 1','Vabs = 2', 'Vabs = 3','Vabs = 4','Vabs = 5')
+legend('Vabs = 1', 'Vabs = 2','Vabs = 3','Vabs = 4')
 
-%figure
+path = ['writting/ps_dist/pulse_distance2.fig'];
+savefig(path)
+figure
 
 %% Plot Data
-%t = p.dt : p.dt : p.stab * p.dt + ISI * ( nr_cycles + p.tot_cycles );
-%plot( Data * 1e3 , 'LineWidth' , 3 )
-%hold on
-%plot( Pout1 * 1e3 , 'LineWidth' , 3 )
-%plot( Pout2 * 1e3 , 'LineWidth' , 3 ,'Color', 'black')
-%xlabel( 'time (ns)' , 'FontSize' , 20 )
-%ylabel( 'Output Power (mW)' , 'FontSize' , 20)
-%legend( 'Input' , 'Neuron 1' , 'Neuron 2' , 'FontSize' , 20 )
-%title( [ 'Pin=' num2str( Pin * 1e3 ) 'DC=' num2str( dc ) 'Period=' num2str( ISI * 1e9 ) ] )
+t = p.dt : p.dt : p.stab * p.dt + ISI * ( nr_cycles + p.tot_cycles );
+plot( Data * 1e3 , 'LineWidth' , 3 )
+hold on
+plot( Pout1 * 1e3 , 'LineWidth' , 3 )
+plot( Pout2 * 1e3 , 'LineWidth' , 3 ,'Color', 'black')
+xlabel( 'time (ns)' , 'FontSize' , 20 )
+ylabel( 'Output Power (mW)' , 'FontSize' , 20)
+legend( 'Input' , 'Neuron 1' , 'Neuron 2' , 'FontSize' , 20 )
+title( [ 'Pin=' num2str( Pin * 1e3 ) 'DC=' num2str( dc ) 'Period=' num2str( ISI * 1e9 ) ] )
 
 
 

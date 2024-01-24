@@ -12,10 +12,11 @@ Pin  = 1e-3 ;%10e-3; %min Pin with I_bias 24.45e-3 and pulse_duration 0.9e-9
 Pulse_duration = 1e-9;
 Data = DATA_SEQUENCE( Pin , Pulse_duration , p );
 
-ibs = 10e-3:1e-3:80e-3;
+%ibs = 10e-3:1e-3:80e-3;
+ibs = 200e-3; %just for testinng
 spikes = zeros(length(ibs),1);
 %figure('Renderer', 'painters', 'Position', [5 5 900 900]);
-for Vabs = 0 : 5
+for Vabs = 1
     p = constants(Vabs,L,Rga);
 
     figure
@@ -29,28 +30,32 @@ for Vabs = 0 : 5
         
     end
 
-    plot(ibs*1e3,spikes,'LineWidth',3);
-    hold on;
+    %%those work just removed for testing
+    %plot(ibs*1e3,spikes,'LineWidth',3);
+    %hold on;%
 
-    xlabel( 'I-bias (mA)' , 'FontSize' , 20 )
-    ylabel( 'Number of spikes' , 'FontSize' , 20)
-    legend( 'No of spikes','Location', 'northwest' , 'FontSize' , 20 )
-    title(['Vabs = ' num2str(Vabs) ' Volt'])
+    %xlabel( 'I-bias (mA)' , 'FontSize' , 20 )
+    %ylabel( 'Number of spikes' , 'FontSize' , 20)
+    %legend( 'No of spikes','Location', 'northwest' , 'FontSize' , 20 )
+    %title(['Vabs = ' num2str(Vabs) ' Volt'])
 
-    exportgraphics(gcf,['writting/chapter1/I_biasThreshold/Vabs' num2str(Vabs) '.png'])
+    %exportgraphics(gcf,['writting/chapter1/I_biasThreshold/Vabs' num2str(Vabs) '.png'])
 end
 
 
 %% Plot Data
-%t = 2*p.dt : p.dt : p.tot_time * p.dt;
-%figure
-%plot( Data * 1e3 , 'LineWidth' , 3 )
-%hold on
-%plot( Pout * 1e3 , 'LineWidth' , 3 )
-%xlabel( 'time (ns)' , 'FontSize' , 20 )
-%ylabel( 'Output Power (mW)' , 'FontSize' , 20)
-%legend( 'Input' , 'Neuron' , 'FontSize' , 20 )
+t = 2*p.dt : p.dt : p.tot_time * p.dt;
+length(t)
+length(Data(1:-1))
+figure
+plot( t*1e9,Data(1:length(Data)-1) * 1e3 , 'LineWidth' , 3 )
+hold on
+plot( t*1e9 ,Pout(1:length(Data)-1) * 1e3 , 'LineWidth' , 3 )
+xlabel( 'time (ns)' , 'FontSize' , 20 )
+ylabel( 'Output Power (mW)' , 'FontSize' , 20)
+legend( 'Input' , 'Neuron' , 'FontSize' , 20 )
 %title( [ 'Pin=' num2str( Pin * 1e3 ) 'Pulse Duration=' num2str( Pulse_duration * 1e9 ) ] )
+title("Lasing")
 
 
     

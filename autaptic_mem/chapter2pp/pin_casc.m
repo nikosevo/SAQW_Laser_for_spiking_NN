@@ -1,39 +1,46 @@
 
 
 %scanning parameters
-ISI = 10e-9;            %input(blue line): pulse period...how much time it needs to complete one oscillation
+ISI = 6e-9;            %input(blue line): pulse period...how much time it needs to complete one oscillation
 nr_cycles = 1;          %number of cycles, how many square pulses we putting in
 dc = 0.2;               %duty cycle: how much time inside the period the pulse stays on...50% means have period 'high' half 'low'
-delay = 150e-9;          %transmision distance between the two pulses
+delay = 100e-9;          %transmision distance between the two pulses
 
 
-for Vabs = 0:5
+%%% and do the same for decent delay with different pin for 3 inputs 
+%%% sometimes with the same delay, can save 3 or not pulses based on the pin 
+%only do for Vabs = 2 
+for Vabs = 1
     f = figure('Position', [300 200 2000 1000]);
-    I_bias_map1 = [16.19,19.87,24.39,29.94,36.75,45.10,55.37].*1e-3;
-    I_bias_map2 = I_bias_map1 + .25e-3; %usually around +.2e-3
+    I_bias_map1 = [16.19 ,19.9,24.39,29.94,36.75,45.10,55.37].*1e-3;
+    I_bias_map2 = I_bias_map1 + .25e-3; %.25e-3; %usually around +.2e-3
     
     I_bias1 = I_bias_map1(Vabs + 1);       
     I_bias2 = I_bias_map2(Vabs + 1);  
+
     
     L = 200e-6;                                 
     Rga = 0.1;                                   
     inj = 0.6;                                  
     p = constants(Vabs,L,Rga);
-    p.tot_cycles = 200;  
+    p.tot_cycles = 80;  
     
 
-    pin = 0.5e-3:0.1e-3:5e-3;
+    pin = 0e-3:.1e-3:4e-3;
     th1_found = false;
     th2_found = false;
     for Pin = pin 
+        Pin
         if(th1_found && th2_found)
             subplot(1,3,3);
-            Pin = 100e-3;
+            I_bias2 = I_bias2 + .04e-3;
+            Pin = 3e-3;
             Data = DATA_SEQUENCE(Pin,ISI,nr_cycles,dc,p);
             [Pout1,Pout2] = lasers(p,Data,I_bias1,I_bias2,delay,nr_cycles,ISI);
             plot_graph(Pin,Pout1,Pout2,Data,dc,ISI)
             break;
         end
+    
         if(th2_found)
             break;
         end
@@ -49,13 +56,19 @@ for Vabs = 0:5
             if(length(peaks1) >= 1 && not(th1_found))
                 subplot(1,3,1);
                 plot_graph(Pin,Pout1,Pout2,Data,dc,ISI)
-                th1_found = true;
+                th1_found = true
+                
             end
+
             if(length(peaks2) >= 1 && not(th2_found))
                 subplot(1,3,2);
                 plot_graph(Pin,Pout1,Pout2,Data,dc,ISI)
-                th2_found = true;
+                th2_found = true
+                Pin
             end
+        
+
+     
         end
     end
 
@@ -67,7 +80,7 @@ for Vabs = 0:5
     subplot(1,3,2)
     legend( 'Neuron 1' , 'Neuron 2' , 'Input', 'FontSize' , 20 )
 
-    path = ['writting/pin_casc/Vabs' num2str(Vabs) '_With_bias.fig'];
+    path = ['writting/pin_casc/Vabs' num2str(Vabs) '_Wbias.fig'];
     savefig(path)
 
     
@@ -88,6 +101,8 @@ function plot_graph(pin,Pout1,Pout2,Data,dc,ISI)
     title( [ 'Pin=' num2str( pin * 1e3 ) 'DC=' num2str( dc ) 'Period=' num2str( ISI * 1e9 ) ] )
 
 end
+
+
 
 
 

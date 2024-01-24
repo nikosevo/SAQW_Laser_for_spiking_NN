@@ -1,46 +1,124 @@
  
 %scanning parameters
-Pin = 5e-3;
+Pin = 1e-3;
 ISI = 1e-9;            %input(blue line): pulse period...how much time it needs to complete one oscillation
-nr_cycles = 10;          %number of cycles, how many square pulses we putting in
+nr_cycles = 5;          %number of cycles, how many square pulses we putting in
 dc = 1;               %duty cycle: how much time inside the period the pulse stays on...50% means have period 'high' half 'low'
-delay = 140e-9;          %transmision distance between the two Lasers
-pulse_delay =10e-9;
+delay = 120e-9;          %transmision distance between the two Lasers
+pulse_delay =4.5e-9;
 
+
+%%%% REWRITE THE BAD EXAMPE ! 
+%% AFTER SOME PULSE_DELAY THEY DONT RECREATE
+%%%% TRY FOR .5
 
 %THATS THE MAIN CODE --------------------------------------------------------------------------------------
 figure('Position', [0 0 2000 1000])
-colors = [[0 0.4470 0.7410] [0.8500 0.3250 0.0980] [0.4940 0.1840 0.5560] [0.4660 0.6740 0.1880]  [0.6350 0.0780 0.1840] [0.4940 0.1840 0.5560]];
+colors = [[0 0.4470 0.7410]; [0.8500 0.3250 0.0980]; [0.4940 0.1840 0.5560]; [0.4660 0.6740 0.1880];  [0.6350 0.0780 0.1840]; [0.6350 0.0780 0.1840]];
 
-for Vabs = 2
-    I_bias_map1 = [16.19,19.87,24.39,29.94,36.75,45.10,55.37].*1e-3;
-    I_bias_map2 = I_bias_map1 + .25e-3;
 
-    I_bias1 = I_bias_map1(Vabs + 1);       
-    I_bias2 = I_bias_map2(Vabs + 1);  
+Vabs = 2;
+I_bias_map1 = [16.19,19.87,24.39,29.94,36.75,45.10,55.37].*1e-3;
+I_bias_map2 = I_bias_map1 + .25e-3;
 
-    L = 200e-6;                                 
-    Rga = 0.1;                                   
-    inj = 0.6;                                  
-    p = constants(Vabs,L,Rga);
-    p.tot_cycles = 1000;  
+I_bias1 = I_bias_map1(Vabs + 1);       
+I_bias2 = I_bias_map2(Vabs + 1);  
 
-    Data = DATA_SEQUENCE(Pin,ISI,nr_cycles,dc,p,pulse_delay);
-    [Pout1,Pout2] = lasers(p,Data,I_bias1,I_bias2,delay,nr_cycles,ISI);
+L = 200e-6;                                 
+Rga = 0.1;                                   
+inj = 0.6;                                  
+p = constants(Vabs,L,Rga);
+p.tot_cycles = 1000;  
+
+
+
+
+del = 1e-9:10e-9:101e-9;
+prev_capacity = 1
+laser_capacity = zeros(length(del),1);
+counter =1 ;
+
+for delay = del
+    
+    cycles = prev_capacity:1:100;
+    for nr_cycles = cycles
+        nr_cycles
+
+        Data = DATA_SEQUENCE(Pin,ISI,nr_cycles,dc,p,pulse_delay);
+        [Pout1,Pout2] = lasers(p,Data,I_bias1,I_bias2,delay,nr_cycles,ISI);
+
+
+        %finding the area where the initial spikes will happen with our input 
+        start = p.stab;
+        finish = p.stab + round((ISI+pulse_delay)/p.dt + 1)*nr_cycles;
+
+        [peaks1_init] = findpeaks(Pout1(start:finish),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
+        [peaks2,loc2,~,~] = findpeaks(Pout2,'MinPeakProminence',0.025,'MinPeakHeight',0.02);
+
+        %if the initial spike are not as many as the input we used then the laser cant even spike the initial peaks
+        if(not(length(peaks1_init) == nr_cycles))
+            continue;
+        end
+
+        
+        %if the number of spikes is not a integer multiplier of our initial number of spikes there is no way to procceed
+        %here 3 is choosen as integer but any other number will work as long as we are still in p.total_cycles
+
+        %if(length(loc2) < 2*nr_cycles + 1)
+        %    continue;
+        %end
+
+        %between the last spike of Slave laser and the first of the next batch we should have all the spikes from ML
+        start = (p.stab) + 2*(delay/p.dt)
+        finish = (p.stab) + 3*(delay/p.dt)
+        [peaks1_mid] = findpeaks(Pout1(start:finish),'MinPeakProminence',0.025,'MinPeakHeight',0.02);
+
+        %if the initial spikes are the same after some iterrations (3 choosen here) then the memory works fine and dont need more distance between pulses
+        if(length(peaks1_init) == length(peaks1_mid))
+            prev_capacity = nr_cycles;
+            continue;
+        else
+            laser_capacity(counter) = prev_capacity;
+            counter = counter + 1;
+            break;
+        end
+    end
 end
 
 
+hold on;
+plot(del*1e9,laser_capacity,'LineWidth' , 3 , 'Color',colors(2,:));
+counter = counter+ 1;
 
-%% Plot Data
-%t = p.dt : p.dt : p.stab * p.dt + ISI * ( nr_cycles + p.tot_cycles );
-plot( Data * 1e3 , 'LineWidth' , 3 )
-hold on
-plot( Pout1 * 1e3 , 'LineWidth' , 3 )
-plot( Pout2 * 1e3 , 'LineWidth' , 3 ,'Color', 'black')
-xlabel( 'time (ns)' , 'FontSize' , 20 )
-ylabel( 'Output Power (mW)' , 'FontSize' , 20)
-legend( 'Input' , 'Neuron 1' , 'Neuron 2' , 'FontSize' , 20 )
-title( [ 'Pin=' num2str( Pin * 1e3 ) 'DC=' num2str( dc ) 'Period=' num2str( ISI * 1e9 ) ] )
+
+
+ylabel('max No of spikes','FontSize' , 20);
+xlabel('Delay (ns)','FontSize' , 20);
+title('Capacity','FontSize',24);
+%legend('Vabs = 2', 'Vabs = 3','Vabs = 4','Vabs = 5')
+
+path = ['writting/capacity/capacity2.fig'];
+savefig(path)
+
+plot_time(Data,Pout1,Pout2,p,ISI,nr_cycles);
+
+
+function plot_time(Data,Pout1,Pout2,p,ISI,nr_cycles)
+    figure
+
+    %% Plot Data
+    t = p.dt : p.dt : p.stab * p.dt + ISI * ( nr_cycles + p.tot_cycles );
+    plot( Data * 1e3 , 'LineWidth' , 3 )
+    hold on
+    plot( Pout1 * 1e3 , 'LineWidth' , 3 )
+    plot( Pout2 * 1e3 , 'LineWidth' , 3 ,'Color', 'black')
+    xlabel( 'time (ns)' , 'FontSize' , 20 )
+    ylabel( 'Output Power (mW)' , 'FontSize' , 20)
+    legend( 'Input' , 'Neuron 1' , 'Neuron 2' , 'FontSize' , 20 )
+    %title( [ 'Pin=' num2str( Pin * 1e3 ) 'DC=' num2str( dc ) 'Period=' num2str( ISI * 1e9 ) ] )
+
+end
+
 
 
 
